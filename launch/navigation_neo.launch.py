@@ -33,11 +33,11 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
     params_file = LaunchConfiguration('params_file')
-    use_multi_robots_simulation = LaunchConfiguration('use_multi_robots')
+    use_multi_robots = LaunchConfiguration('use_multi_robots')
 
     lifecycle_nodes = ['controller_server',
                        'planner_server',
-                       'recoveries_server',
+                       'behavior_server',
                        'bt_navigator',
                        'waypoint_follower']
 
@@ -73,12 +73,12 @@ def generate_launch_description():
         'autostart', default_value='true',
         description='Automatically startup the nav2 stack')
 
-    declare_use_multi_robots_simulation_cmd =  DeclareLaunchArgument(
+    declare_use_multi_robots_cmd =  DeclareLaunchArgument(
         'use_multi_robots', default_value='False',
         description='A flag to remove the remappings')
 
     load_nodes = GroupAction(
-        condition=IfCondition(PythonExpression(['not ', use_multi_robots_simulation])),
+        condition=IfCondition(PythonExpression(['not ', use_multi_robots])),
         actions=[
             Node(
                 package='nav2_controller',
@@ -94,9 +94,9 @@ def generate_launch_description():
                 parameters=[configured_params],
                 remappings=remappings),
             Node(
-                package='nav2_recoveries',
-                executable='recoveries_server',
-                name='recoveries_server',
+                package='nav2_behaviors',
+                executable='behavior_server',
+                name='behavior_server',
                 output='screen',
                 parameters=[configured_params],
                 remappings=remappings),
@@ -126,7 +126,7 @@ def generate_launch_description():
     )
 
     load_nodes_multi_robot = GroupAction(
-        condition=IfCondition(use_multi_robots_simulation),
+        condition=IfCondition(use_multi_robots),
         actions=[
             Node(
                 package='nav2_controller',
@@ -140,9 +140,9 @@ def generate_launch_description():
                 output='screen',
                 parameters=[configured_params]),
             Node(
-                package='nav2_recoveries',
-                executable='recoveries_server',
-                name='recoveries_server',
+                package='nav2_behaviors',
+                executable='behavior_server',
+                name='behavior_server',
                 output='screen',
                 parameters=[configured_params]),
             Node(
@@ -176,7 +176,7 @@ def generate_launch_description():
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_params_file_cmd)
     ld.add_action(declare_autostart_cmd)
-    ld.add_action(declare_use_multi_robots_simulation_cmd)
+    ld.add_action(declare_use_multi_robots_cmd)
 
     # Add the actions to launch all of the navigation nodes
     ld.add_action(load_nodes)
